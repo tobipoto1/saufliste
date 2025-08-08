@@ -1,0 +1,359 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Festkasse 2025</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f4f4f4;
+            color: #333;
+            margin: 0;
+            padding: 20px;
+        }
+        .container {
+            max-width: 800px;
+            margin: auto;
+            background: #fff;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+        }
+        h1, h2 {
+            color: #555;
+            text-align: center;
+        }
+        .day-switcher {
+            display: flex;
+            justify-content: center;
+            gap: 10px;
+            margin-bottom: 20px;
+        }
+        .day-switcher button {
+            background-color: #ccc;
+            border: none;
+            padding: 10px 20px;
+            cursor: pointer;
+            font-size: 1em;
+            border-radius: 5px;
+        }
+        .day-switcher button.active {
+            background-color: #007bff;
+            color: white;
+        }
+        .category {
+            margin-bottom: 25px;
+        }
+        .category h3 {
+            border-bottom: 2px solid #ccc;
+            padding-bottom: 5px;
+        }
+        .item-list {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+            gap: 15px;
+        }
+        .item {
+            background-color: #e9e9e9;
+            padding: 15px;
+            border-radius: 5px;
+            text-align: center;
+            position: relative;
+            cursor: pointer;
+            transition: background-color 0.2s;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+        }
+        .item:hover {
+            background-color: #dcdcdc;
+        }
+        .item .name {
+            font-weight: bold;
+        }
+        .item .price {
+            color: #777;
+        }
+        .counter {
+            position: absolute;
+            top: 5px;
+            right: 5px;
+            background: #ff5722;
+            color: white;
+            padding: 5px 8px;
+            border-radius: 50%;
+            font-size: 0.8em;
+            display: none;
+        }
+        .checkout {
+            margin-top: 20px;
+            border-top: 2px solid #eee;
+            padding-top: 20px;
+        }
+        .total-price {
+            font-size: 1.5em;
+            font-weight: bold;
+            text-align: right;
+            margin-bottom: 10px;
+        }
+        .payment {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+        .payment label {
+            font-weight: bold;
+        }
+        .payment input {
+            padding: 10px;
+            font-size: 1em;
+            border-radius: 5px;
+            border: 1px solid #ccc;
+        }
+        .payment-buttons {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+            justify-content: flex-end;
+            margin-bottom: 10px;
+        }
+        .payment-buttons button {
+            padding: 8px 12px;
+            border: 1px solid #ccc;
+            background-color: #f0f0f0;
+            cursor: pointer;
+            border-radius: 5px;
+        }
+        .change {
+            font-size: 1.2em;
+            font-weight: bold;
+            text-align: right;
+            margin-top: 10px;
+            color: #28a745;
+        }
+        .reset-button {
+            background-color: #dc3545;
+            color: white;
+            border: none;
+            padding: 10px;
+            cursor: pointer;
+            font-size: 1em;
+            border-radius: 5px;
+            margin-top: 20px;
+            transition: background-color 0.2s;
+        }
+        .reset-button:hover {
+            background-color: #c82333;
+        }
+        .order-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 5px;
+        }
+        .order-item-controls button {
+            background-color: #ccc;
+            border: none;
+            padding: 5px 10px;
+            cursor: pointer;
+            border-radius: 5px;
+            font-size: 0.9em;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="container">
+        <h1>Festkasse</h1>
+        <div id="menu-content">
+            </div>
+
+        <div class="checkout">
+            <h2>Bestellübersicht</h2>
+            <div id="order-summary"></div>
+            <div class="total-price">
+                Gesamt: <span id="total-price">0.00</span> €
+            </div>
+
+            <div class="payment">
+                <label for="paid-amount">Gegebener Betrag (€):</label>
+                <div class="payment-buttons">
+                    <button onclick="addPaidAmount(5)">5 €</button>
+                    <button onclick="addPaidAmount(10)">10 €</button>
+                    <button onclick="addPaidAmount(20)">20 €</button>
+                    <button onclick="addPaidAmount(50)">50 €</button>
+                    <button onclick="addPaidAmount(100)">100 €</button>
+                    <button onclick="addPaidAmount(0.5)">0,50 €</button>
+                    <button onclick="addPaidAmount(1)">1 €</button>
+                    <button onclick="addPaidAmount(2)">2 €</button>
+                </div>
+                <input type="number" id="paid-amount" placeholder="Z.B. 30.00" step="0.01">
+                <div class="change">
+                    Rückgeld: <span id="change-amount">0.00</span> €
+                </div>
+            </div>
+
+            <button class="reset-button" onclick="resetApp()">Neue Bestellung</button>
+        </div>
+    </div>
+
+    <script>
+        const menus = {
+            saturday: {
+                alkoholfreieGetraenke: [
+                    { name: "Limo 0,33 l", price: 3.00 },
+                    { name: "Limo gespritzt 0,5 l", price: 4.00 },
+                    { name: "Cappy, Apfelsaft 0,25 l", price: 3.00 },
+                    { name: "Eistee 0,25 l", price: 3.00 },
+                    { name: "Cappy, Apfels. gesp. 0,5 l", price: 4.00 },
+                    { name: "Red Bull", price: 4.50 },
+                    { name: "Mineral 0,3 l", price: 2.50 },
+                    { name: "Bier alkoholfrei 0,5 l", price: 4.50 }
+                ],
+                alkoholischeGetraenke: [
+                    { name: "Aperol Spritzer 0,25 l", price: 4.50 },
+                    { name: "Bacardi-Cola", price: 4.50 },
+                    { name: "Flying Hirsch", price: 5.00 },
+                    { name: "Fanta Hunter", price: 4.50 },
+                    { name: "Spritzer/Mischung 0,25 g", price: 3.50 },
+                    { name: "Spritzer/Mischung 0,5 g", price: 5.00 },
+                    { name: "Almi weiß, Cola rot 0,25 g", price: 3.50 },
+                    { name: "Whisky- Cola/Bull", price: 5.00 },
+                    { name: "Wodka Orange", price: 4.50 },
+                    { name: "Wodka Bull", price: 5.00 },
+                    { name: "Gin Tonic", price: 4.50 },
+                    { name: "Eristoff Ice", price: 4.50 },
+                    { name: "Jägermeister", price: 3.00 },
+                    { name: "Berliner Luft", price: 3.00 },
+                    { name: "Klopfer", price: 3.00 },
+                    { name: "Bier/ Radler 0,5", price: 4.50 },
+                    { name: "Bier/ Radler 0,3", price: 3.50 }
+                ]
+            }
+        };
+
+        let currentDay = 'saturday'; 
+        let order = {};
+        const menuContent = document.getElementById('menu-content');
+        const totalPriceSpan = document.getElementById('total-price');
+        const paidAmountInput = document.getElementById('paid-amount');
+        const changeAmountSpan = document.getElementById('change-amount');
+        const orderSummaryDiv = document.getElementById('order-summary');
+        
+        function renderMenu() {
+            menuContent.innerHTML = '';
+            
+            const currentMenu = menus[currentDay];
+            
+            for (const category in currentMenu) {
+                const categoryDiv = document.createElement('div');
+                categoryDiv.className = 'category';
+                const categoryTitle = document.createElement('h3');
+                let titleText = '';
+                if (category === 'alkoholfreieGetraenke') titleText = 'Alkoholfreie Getränke';
+                else if (category === 'alkoholischeGetraenke') titleText = 'Alkoholische Getränke';
+                categoryTitle.textContent = titleText;
+                categoryDiv.appendChild(categoryTitle);
+
+                const itemList = document.createElement('div');
+                itemList.className = 'item-list';
+
+                currentMenu[category].forEach(item => {
+                    itemList.appendChild(createItemElement(item));
+                });
+                categoryDiv.appendChild(itemList);
+                menuContent.appendChild(categoryDiv);
+            }
+            updateDisplay();
+        }
+
+        function createItemElement(item) {
+            const itemDiv = document.createElement('div');
+            itemDiv.className = 'item';
+            const key = `${item.name}`;
+            const count = order[key] || 0;
+            itemDiv.innerHTML = `
+                <div class="name">${item.name}</div>
+                <div class="price">${item.price.toFixed(2)} €</div>
+                <div class="counter" style="display: ${count > 0 ? 'block' : 'none'};">${count}</div>
+            `;
+            itemDiv.addEventListener('click', () => {
+                const counter = itemDiv.querySelector('.counter');
+                order[key] = (order[key] || 0) + 1;
+                counter.textContent = order[key];
+                counter.style.display = 'block';
+                updateDisplay();
+            });
+            return itemDiv;
+        }
+
+        function addPaidAmount(amount) {
+            let currentAmount = parseFloat(paidAmountInput.value) || 0;
+            paidAmountInput.value = (currentAmount + amount).toFixed(2);
+            calculateChange();
+        }
+
+        function addOrderItem(name) {
+            order[name] = (order[name] || 0) + 1;
+            updateDisplay();
+        }
+        
+        function removeOrderItem(name) {
+            if (order[name] && order[name] > 0) {
+                order[name]--;
+                updateDisplay();
+            }
+        }
+
+        function updateDisplay() {
+            let total = 0;
+            orderSummaryDiv.innerHTML = '';
+            for (const name in order) {
+                const quantity = order[name];
+                if (quantity > 0) {
+                    const allItems = [
+                        ...menus.saturday.alkoholfreieGetraenke,
+                        ...menus.saturday.alkoholischeGetraenke
+                    ];
+                    const item = allItems.find(i => i.name === name);
+                    if (item) {
+                        const itemTotal = quantity * item.price;
+                        total += itemTotal;
+                        const summaryItem = document.createElement('div');
+                        summaryItem.className = 'order-item';
+                        summaryItem.innerHTML = `
+                            <span>${quantity}x ${name} - ${itemTotal.toFixed(2)} €</span>
+                            <div class="order-item-controls">
+                                <button onclick="addOrderItem('${name}')">+</button>
+                                <button onclick="removeOrderItem('${name}')">-</button>
+                            </div>
+                        `;
+                        orderSummaryDiv.appendChild(summaryItem);
+                    }
+                }
+            }
+            totalPriceSpan.textContent = total.toFixed(2);
+            calculateChange();
+        }
+
+        function calculateChange() {
+            const total = parseFloat(totalPriceSpan.textContent) || 0;
+            const paid = parseFloat(paidAmountInput.value) || 0;
+            const change = paid - total;
+            changeAmountSpan.textContent = change.toFixed(2);
+            changeAmountSpan.style.color = change >= 0 ? '#28a745' : '#dc3545';
+        }
+
+        function resetApp() {
+            order = {};
+            paidAmountInput.value = '';
+            renderMenu();
+        }
+
+        paidAmountInput.addEventListener('input', calculateChange);
+        window.onload = () => renderMenu();
+    </script>
+
+</body>
+</html>
